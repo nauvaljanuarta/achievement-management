@@ -14,11 +14,11 @@ import (
 )
 
 // Variabel Global Exported
-// Gunakan variabel ini di Repository/Service Anda nanti
+// Gunakan variabel ini di Repository/Service nanti
 var (
-	PgDB        *sql.DB         // Koneksi PostgreSQL
-	MongoClient *mongo.Client   // Koneksi Client Mongo
-	MongoDB     *mongo.Database // Koneksi Database Mongo Spesifik
+	PgDB        *sql.DB         
+	MongoClient *mongo.Client   
+	MongoDB     *mongo.Database 
 )
 
 func ConnectDB() {
@@ -32,7 +32,7 @@ func connectPostgres() {
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"), 
+		os.Getenv("DB_PASS"), 
 		os.Getenv("DB_NAME"),
 		os.Getenv("DB_PORT"),
 	)
@@ -43,7 +43,6 @@ func connectPostgres() {
 		log.Fatal(" Error opening Postgres connection:", err)
 	}
 
-	// Cek ping untuk memastikan koneksi hidup
 	if err = PgDB.Ping(); err != nil {
 		log.Fatal(" Error connecting to Postgres:", err)
 	}
