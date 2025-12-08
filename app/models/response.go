@@ -10,8 +10,7 @@ type MetaInfo struct {
 	Search string `json:"search"`
 }
 
-
-type AlumniResponse struct {
-	Data []User   `bson:"data" json:"data"`
-	Meta MetaInfo `bson:"meta" json:"meta"`
+type UserResponse struct {
+	Data []User   `json:"data"` // ganti dari []User ke []UserProfileResponse
+	Meta MetaInfo `json:"meta"`
 }
