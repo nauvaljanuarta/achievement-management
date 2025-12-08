@@ -28,21 +28,17 @@ func main() {
 	migrateFlag := flag.Bool("migrate", false, "Run database migrations")
 	flag.Parse()
 
-	// Connect database
 	database.ConnectDB()
 	defer database.CloseDB()
 
-	// Jalankan migrasi jika flag di-set
 	if *migrateFlag {
 		log.Println("Running migrations...")
 		database.Migrate(database.PgDB, "./database/migrations")
 		log.Println("Migrations completed")
-	} else {
-		log.Println("Skipping migrations")
+		return
 	}
 
 	app := fiber.New(config.FiberConfig())
-
 	app.Use(recover.New())
 	app.Use(cors.New())
 	app.Use(logger.New(config.LoggerConfig()))
