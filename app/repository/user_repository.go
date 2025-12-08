@@ -5,14 +5,15 @@ import (
 	"errors"
 
 	"achievement-backend/app/models"
+	"github.com/google/uuid"
 )
 
 type UserRepository interface {
-	GetByID(id string) (*models.User, error)
+	GetByID(id uuid.UUID) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
-	Create(user models.User) (string, error)
+	Create(user models.User) (uuid.UUID, error)
 	Update(user models.User) error
-	Delete(id string) error
+	Delete(id uuid.UUID) error
 	GetAll() ([]models.User, error)
 }
 
@@ -24,7 +25,7 @@ func NewUserRepository(db *sql.DB) UserRepository {
 	return &userRepo{DB: db}
 }
 
-func (r *userRepo) GetByID(id string) (*models.User, error) {
+func (r *userRepo) GetByID(id uuid.UUID) (*models.User, error) {
 	var u models.User
 	err := r.DB.QueryRow(`
 		SELECT id, username, email, password_hash, full_name, role_id, is_active, created_at, updated_at
@@ -62,14 +63,14 @@ func (r *userRepo) GetByEmail(email string) (*models.User, error) {
 	return &u, nil
 }
 
-func (r *userRepo) Create(user models.User) (string, error) {
-	var id string
+func (r *userRepo) Create(user models.User) (uuid.UUID, error) {
+	var id uuid.UUID
 	err := r.DB.QueryRow(`
 		INSERT INTO users (username, email, password_hash, full_name, role_id, is_active, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING id
 	`, user.Username, user.Email, user.PasswordHash, user.FullName, user.RoleID, user.IsActive).Scan(&id)
 	if err != nil {
-		return "", err
+		return uuid.Nil, err
 	}
 	return id, nil
 }
@@ -83,7 +84,7 @@ func (r *userRepo) Update(user models.User) error {
 	return err
 }
 
-func (r *userRepo) Delete(id string) error {
+func (r *userRepo) Delete(id uuid.UUID) error {
 	_, err := r.DB.Exec(`DELETE FROM users WHERE id=$1`, id)
 	return err
 }
