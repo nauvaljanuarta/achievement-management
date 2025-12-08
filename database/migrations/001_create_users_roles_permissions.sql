@@ -36,6 +36,16 @@ CREATE TABLE IF NOT EXISTS permissions (
     description TEXT
 );
 
+INSERT INTO permissions (id, name, resource, action, description)
+VALUES
+  (gen_random_uuid(), 'achievement:create', 'achievement', 'create', 'Buat prestasi baru'),
+  (gen_random_uuid(), 'achievement:read', 'achievement', 'read', 'Baca prestasi'),
+  (gen_random_uuid(), 'achievement:update', 'achievement', 'update', 'Update prestasi'),
+  (gen_random_uuid(), 'achievement:delete', 'achievement', 'delete', 'Hapus prestasi'),
+  (gen_random_uuid(), 'achievement:verify', 'achievement', 'verify', 'Verifikasi prestasi'),
+  (gen_random_uuid(), 'user:manage', 'user', 'manage', 'Manage user')
+ON CONFLICT (id) DO NOTHING;
+
 -- 4. Role_Permissions
 CREATE TABLE IF NOT EXISTS role_permissions (
     role_id UUID REFERENCES roles(id),
