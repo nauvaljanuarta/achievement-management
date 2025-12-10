@@ -8,59 +8,57 @@ import (
 )
 
 type User struct {
-	ID           uuid.UUID `json:"id"`
-	Username     string    `json:"username"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"`
-	FullName     string    `json:"fullName"`
-	RoleID       uuid.UUID `json:"roleId"`
-	IsActive     bool      `json:"isActive"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
+	ID           uuid.UUID `json:"id" db:"id"`
+	Username     string    `json:"username" db:"username"`
+	Email        string    `json:"email" db:"email"`
+	PasswordHash string    `json:"-" db:"password_hash"`
+	FullName     string    `json:"fullName" db:"full_name"`
+	RoleID       uuid.UUID `json:"roleId" db:"role_id"`
+	IsActive     bool      `json:"isActive" db:"is_active"`
+	CreatedAt    time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt    time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 type CreateUserRequest struct {
-	Username     string    `json:"username" binding:"required"`
-	Email        string    `json:"email" binding:"required,email"`
-	Password     string    `json:"password" binding:"required"`
-	FullName     string    `json:"fullName" binding:"required"`
-	RoleID       uuid.UUID `json:"roleId" binding:"required"`
-	// Opsional untuk mahasiswa
-	StudentID    string    `json:"studentId,omitempty"`
-	ProgramStudy string    `json:"programStudy,omitempty"`
-	AcademicYear string    `json:"academicYear,omitempty"`
-	AdvisorID    uuid.UUID `json:"advisorId,omitempty"`
-	// Opsional untuk lecturer
-	LecturerID   string    `json:"lecturerId,omitempty"`
-	Department   string    `json:"department,omitempty"`
+	Username  string `json:"username" binding:"required,alphanum,min=3"`
+	Email     string `json:"email" binding:"required,email"`
+	Password  string `json:"password" binding:"required,min=6"`
+	FullName  string `json:"fullName" binding:"required"`
+	RoleID    string `json:"roleId" binding:"required,uuid"`
+	
+	StudentID    *string `json:"studentId,omitempty"`
+	ProgramStudy *string `json:"programStudy,omitempty"`
+	AcademicYear *string `json:"academicYear,omitempty"`
+	AdvisorID    *string `json:"advisorId,omitempty" binding:"omitempty,uuid"`
+	
+	LecturerID   *string `json:"lecturerId,omitempty"`
+	Department   *string `json:"department,omitempty"`
 }
 
-// Request untuk update user
 type UpdateUserRequest struct {
-	FullName     *string    `json:"fullName,omitempty"`
-	Email        *string    `json:"email,omitempty"`
-	Password     *string    `json:"password,omitempty"`
-	IsActive     *bool      `json:"isActive,omitempty"`
-	RoleID       *uuid.UUID `json:"roleId,omitempty"`
-	ProgramStudy *string    `json:"programStudy,omitempty"`
-	AcademicYear *string    `json:"academicYear,omitempty"`
-	AdvisorID    *uuid.UUID `json:"advisorId,omitempty"`
-	Department   *string    `json:"department,omitempty"`
+	FullName *string `json:"fullName,omitempty"`
+	Email    *string `json:"email,omitempty"`
+	Password *string `json:"password,omitempty" binding:"omitempty,min=6"`
+	IsActive *bool   `json:"isActive,omitempty"`
+	RoleID   *string `json:"roleId,omitempty" binding:"omitempty,uuid"`
 }
 
 type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 type LoginResponse struct {
-	User  User   `json:"user"`
-	Token string `json:"token"`
+	Token        string   `json:"token"`
+	RefreshToken string   `json:"refreshToken"`
+	User         User     `json:"user"`
+	Permissions  []string `json:"permissions"` 
 }
 
 type JWTClaims struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
+	UserID      string `json:"user_id"`
+	Email       string `json:"email"`
+	RoleID      string `json:"role_id"`
+	Permissions []string `json:"permissions"` 
 	jwt.RegisteredClaims
 }
