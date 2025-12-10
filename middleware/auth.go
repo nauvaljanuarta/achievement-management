@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// RequireAuth - Memvalidasi token dan attach user data ke context
 func RequireAuth(userRepo repository.UserRepository) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
@@ -53,7 +52,6 @@ func RequireAuth(userRepo repository.UserRepository) fiber.Handler {
 			})
 		}
 
-		// Attach user data to context
 		c.Locals("user_id", user.ID)
 		c.Locals("user", user)
 		c.Locals("role_id", user.RoleID)
@@ -97,7 +95,6 @@ func AdminOnly(roleRepo repository.RoleRepository) fiber.Handler {
 		roleID, ok := c.Locals("role_id").(uuid.UUID)
 		if !ok {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"message": "role not found in context",
 			})
 		}
 
@@ -123,7 +120,6 @@ func RequireRole(roleName string, roleRepo repository.RoleRepository) fiber.Hand
 		roleID, ok := c.Locals("role_id").(uuid.UUID)
 		if !ok {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"message": "role not found in context",
 			})
 		}
 
