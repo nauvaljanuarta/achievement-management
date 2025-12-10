@@ -106,3 +106,11 @@ func CloseDB() {
 		}
 	}
 }
+
+func GetDB() *sql.DB {
+	return PgDB
+}
+
+func GetMongoDB() *mongo.Database {
+	return MongoDB
+}

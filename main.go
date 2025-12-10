@@ -11,14 +11,9 @@ import (
 
 	"achievement-backend/config"
 	"achievement-backend/database"
+	"achievement-backend/route"
 )
 
-
-// @title Student Achievement System API
-// @version 1.0
-// @description API Sistem Pelaporan Prestasi Mahasiswa
-// @host localhost:3000
-// @BasePath /api/v1
 func main() {
 	if err := config.LoadConfig(); err != nil {
 		log.Println("Warning: .env file not found")
@@ -43,10 +38,10 @@ func main() {
 	app.Use(cors.New())
 	app.Use(logger.New(config.LoggerConfig()))
 
-	// Setup Routes
-	// route.SetupRoutes(app)
+	// Setup routes
+	route.SetupRoutes(app) 
 
 	port := config.GetEnv("APP_PORT", "3000")
-	log.Printf("Server running on port %s", port)
+	log.Printf("🚀 Server running on port %s", port)
 	log.Fatal(app.Listen(":" + port))
 }
