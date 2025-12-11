@@ -3,44 +3,24 @@ package route
 import (
 	"achievement-backend/middleware"
 	"achievement-backend/app/repository"
+	"achievement-backend/app/service"
 	
 	"github.com/gofiber/fiber/v2"
 )
 
 func setupAuthRoutes(
-	router fiber.Router, 
+	router fiber.Router,
 	userRepo repository.UserRepository,
 	roleRepo repository.RoleRepository,
 ) {
+	authService := service.NewAuthService(userRepo, roleRepo)
+	
 	authRoutes := router.Group("/auth")
 	
-	authRoutes.Post("/login", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"message": "Login endpoint - akan diimplementasi nanti",
-		})
-	})
+	authRoutes.Post("/login", authService.Login)
+	authRoutes.Post("/refresh", authService.RefreshToken)
+	authRoutes.Post("/logout", authService.Logout)
 	
-	authRoutes.Post("/refresh", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"message": "Refresh token endpoint - akan diimplementasi nanti",
-		})
-	})
-	
-	authRoutes.Post("/logout", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"message": "Logout endpoint - akan diimplementasi nanti",
-		})
-	})
-	
-	// Protected auth endpoint
-	authRoutes.Get("/profile", 
-		middleware.RequireAuth(userRepo),
-		func(c *fiber.Ctx) error {
-			userID, _ := c.Locals("user_id").(string)
-			return c.JSON(fiber.Map{
-				"message": "Profile endpoint",
-				"user_id": userID,
-			})
-		},
-	)
+	authRoutes.Get("/profile", middleware.RequireAuth(userRepo),authService.Profile,)
+	authRoutes.Post("/change-password",middleware.RequireAuth(userRepo),authService.ChangePassword,)
 }
