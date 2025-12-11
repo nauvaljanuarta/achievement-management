@@ -20,19 +20,19 @@ type User struct {
 }
 
 type CreateUserRequest struct {
-	Username  string `json:"username" binding:"required,alphanum,min=3"`
-	Email     string `json:"email" binding:"required,email"`
-	Password  string `json:"password" binding:"required,min=6"`
-	FullName  string `json:"fullName" binding:"required"`
-	RoleID    string `json:"roleId" binding:"required,uuid"`
-	
+	Username string `json:"username" binding:"required,alphanum,min=3"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+	FullName string `json:"fullName" binding:"required"`
+	RoleID   string `json:"roleId" binding:"required,uuid"`
+
 	StudentID    *string `json:"studentId,omitempty"`
 	ProgramStudy *string `json:"programStudy,omitempty"`
 	AcademicYear *string `json:"academicYear,omitempty"`
 	AdvisorID    *string `json:"advisorId,omitempty" binding:"omitempty,uuid"`
-	
-	LecturerID   *string `json:"lecturerId,omitempty"`
-	Department   *string `json:"department,omitempty"`
+
+	LecturerID *string `json:"lecturerId,omitempty"`
+	Department *string `json:"department,omitempty"`
 }
 
 type UpdateUserRequest struct {
@@ -44,6 +44,7 @@ type UpdateUserRequest struct {
 }
 
 type LoginRequest struct {
+	Email    string `json:"email" binding:"required"`
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
@@ -52,13 +53,14 @@ type LoginResponse struct {
 	Token        string   `json:"token"`
 	RefreshToken string   `json:"refreshToken"`
 	User         User     `json:"user"`
-	Permissions  []string `json:"permissions"` 
+	Permissions  []string `json:"permissions"`
+	RoleName     string   `json:"roleName"`
 }
 
 type JWTClaims struct {
-	UserID      string `json:"user_id"`
-	Email       string `json:"email"`
-	RoleID      string `json:"role_id"`
-	Permissions []string `json:"permissions"` 
+	UserID      string   `json:"user_id"`
+	Email       string   `json:"email"`
+	RoleID      string   `json:"role_id"`
+	Permissions []string `json:"permissions"`
 	jwt.RegisteredClaims
 }
