@@ -5,6 +5,16 @@ import (
 	"github.com/google/uuid"
 )
 
+type AchievementStatus string
+
+const (
+	StatusDraft     AchievementStatus = "draft"
+	StatusSubmitted AchievementStatus = "submitted"
+	StatusVerified  AchievementStatus = "verified"
+	StatusRejected  AchievementStatus = "rejected"
+	StatusDeleted   AchievementStatus = "deleted"
+)
+
 type AchievementReference struct {
 	ID                 uuid.UUID  `json:"id"`
 	StudentID          uuid.UUID  `json:"student_id"`
