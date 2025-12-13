@@ -5,10 +5,10 @@ import (
 )
 
 type AchievementDetails struct {
-	CompetitionName      string      `bson:"competitionName,omitempty" json:"competition_name,omitempty"`
-	CompetitionLevel     string      `bson:"competitionLevel,omitempty" json:"competition_level,omitempty"`
-	Rank                 int         `bson:"rank,omitempty" json:"rank,omitempty"`
-	MedalType            string      `bson:"medalType,omitempty" json:"medal_type,omitempty"`
+	CompetitionName      *string      `bson:"competitionName,omitempty" json:"competition_name,omitempty"`
+	CompetitionLevel     *string      `bson:"competitionLevel,omitempty" json:"competition_level,omitempty"`
+	Rank                 *int         `bson:"rank,omitempty" json:"rank,omitempty"`
+	MedalType            *string      `bson:"medalType,omitempty" json:"medal_type,omitempty"`
 
 	PublicationType      string      `bson:"publicationType,omitempty" json:"publication_type,omitempty"`
 	PublicationTitle     string      `bson:"publicationTitle,omitempty" json:"publication_title,omitempty"`
@@ -19,7 +19,7 @@ type AchievementDetails struct {
 	OrganizationName     string      `bson:"organizationName,omitempty" json:"organization_name,omitempty"`
 	Position             string      `bson:"position,omitempty" json:"position,omitempty"`
 
-	Period               *Period     `bson:"period,omitempty" json:"period,omitempty"`
+	Period               Period     `bson:"period,omitempty" json:"period,omitempty"`
 
 	CertificationName    string      `bson:"certificationName,omitempty" json:"certification_name,omitempty"`
 	IssuedBy             string      `bson:"issuedBy,omitempty" json:"issued_by,omitempty"`
@@ -31,7 +31,7 @@ type AchievementDetails struct {
 	Organizer            string      `bson:"organizer,omitempty" json:"organizer,omitempty"`
 	Score                int         `bson:"score,omitempty" json:"score,omitempty"`
 
-	CustomFields         any         `bson:"customFields,omitempty" json:"custom_fields,omitempty"`
+	CustomFields          map[string]interface{}         `bson:"customFields,omitempty" json:"custom_fields,omitempty"`
 }
 
 type Period struct {
