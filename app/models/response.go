@@ -41,3 +41,5 @@ type UserResponse struct {
 	Data []UserProfileResponse `json:"data"`
 	Meta MetaInfo              `json:"meta"`
 }
+
+
