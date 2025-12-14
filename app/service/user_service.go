@@ -363,9 +363,7 @@ func (s *UserService) Update(c *fiber.Ctx) error {
 	})
 }
 
-// -------------------------------------------------------------
-// DELETE USER (SOFT DELETE)
-// -------------------------------------------------------------
+
 func (s *UserService) Delete(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)

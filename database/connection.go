@@ -60,7 +60,7 @@ func connectMongo() {
 		log.Fatal("MONGO_URI environment variable is not set")
 	}
 
-	dbName := os.Getenv("MONGO_DB_NAME") // Pisahkan nama DB Mongo dan Postgres
+	dbName := os.Getenv("MONGO_DB_NAME") 
 	if dbName == "" {
 		log.Fatal("MONGO_DB_NAME environment variable is not set")
 	}

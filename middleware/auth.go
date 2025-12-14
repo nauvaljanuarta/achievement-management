@@ -28,7 +28,6 @@ func RequireAuth(userRepo repository.UserRepository) fiber.Handler {
 
 		tokenString := parts[1]
 
-		// Validate token
 		claims, err := utils.ValidateToken(tokenString)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -37,7 +36,6 @@ func RequireAuth(userRepo repository.UserRepository) fiber.Handler {
 			})
 		}
 
-		// Verify user exists and is active
 		userID, err := uuid.Parse(claims.UserID)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -55,7 +53,7 @@ func RequireAuth(userRepo repository.UserRepository) fiber.Handler {
 		c.Locals("user_id", user.ID)
 		c.Locals("user", user)
 		c.Locals("role_id", user.RoleID)
-		c.Locals("permissions", claims.Permissions) // Dari JWT claims
+		c.Locals("permissions", claims.Permissions) 
 
 		return c.Next()
 	}
@@ -89,7 +87,6 @@ func RequirePermission(permission string) fiber.Handler {
 	}
 }
 
-// AdminOnly - Hanya untuk role Admin
 func AdminOnly(roleRepo repository.RoleRepository) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		roleID, ok := c.Locals("role_id").(uuid.UUID)
