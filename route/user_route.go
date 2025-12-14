@@ -1,9 +1,9 @@
 package route
 
 import (
-	// "achievement-backend/middleware"
-	"achievement-backend/app/service"
 	"achievement-backend/app/repository"
+	"achievement-backend/app/service"
+	"achievement-backend/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -16,22 +16,14 @@ func setupUserRoutes(
 ) {
 	userRoutes := router.Group("/users")
 	
-	protectedUserRoutes := userRoutes.Group("",)
-	// GET /api/v1/users - Get all active users
+	protectedUserRoutes := userRoutes.Group("",middleware.RequireAuth(userRepo),middleware.AdminOnly(roleRepo),)
 	userRoutes.Get("/", userService.GetAll)
-	// GET /api/v1/users/:id - Get user by ID
 	userRoutes.Get("/:id", userService.GetByID)
-	// GET /api/v1/users/search - Search users by name
 	userRoutes.Get("/search", userService.SearchByName)
-	// ADMIN ONLY ROUTES
-	// POST /api/v1/users - Create user (admin only)
+	// admin
 	protectedUserRoutes.Post("/", userService.Create)
-	// PUT /api/v1/users/:id - Update user (admin only)
 	protectedUserRoutes.Put("/:id", userService.Update)
-	// DELETE /api/v1/users/:id - Delete user (admin only)
 	protectedUserRoutes.Delete("/:id", userService.Delete)
-	// PUT /api/v1/users/:id/role - Update user role (admin only)
 	protectedUserRoutes.Put("/:id/role", userService.UpdateRole)
-	// GET /api/v1/users/inactive - Get inactive users (admin only)
 	protectedUserRoutes.Get("/inactive", userService.GetInactiveUsers)
 }

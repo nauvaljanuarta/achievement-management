@@ -20,7 +20,5 @@ func setupAuthRoutes(
 	authRoutes.Post("/login", authService.Login)
 	authRoutes.Post("/refresh", authService.RefreshToken)
 	authRoutes.Post("/logout", authService.Logout)
-	
 	authRoutes.Get("/profile", middleware.RequireAuth(userRepo),authService.Profile,)
-	authRoutes.Post("/change-password",middleware.RequireAuth(userRepo),authService.ChangePassword,)
 }
