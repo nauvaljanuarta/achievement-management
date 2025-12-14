@@ -19,6 +19,7 @@ type AchievementReferenceRepository interface {
 	FindByMongoID(ctx context.Context, mongoID string) (*models.AchievementReference, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, status string, verifiedBy *uuid.UUID, rejectionNote *string) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	SoftDelete(ctx context.Context, id uuid.UUID) error
 	
 	// For Dosen Wali
 	FindByAdvisorID(ctx context.Context, advisorID uuid.UUID, status string, page, limit int) ([]*models.AchievementReference, int, error)
@@ -126,11 +127,22 @@ func (r *achievementReferenceRepo) FindByStudentID(ctx context.Context, studentI
 	params := []interface{}{studentID}
 	paramCount := 2
 	
-	if status != "" {
+	if status == "deleted" {
+		// Khusus minta deleted
 		baseQuery += fmt.Sprintf(` AND status = $%d`, paramCount)
 		countQuery += fmt.Sprintf(` AND status = $%d`, paramCount)
 		params = append(params, status)
 		paramCount++
+	} else if status != "" {
+		// Filter status tertentu, exclude deleted
+		baseQuery += fmt.Sprintf(` AND status = $%d AND status != 'deleted'`, paramCount)
+		countQuery += fmt.Sprintf(` AND status = $%d AND status != 'deleted'`, paramCount)
+		params = append(params, status)
+		paramCount++
+	} else {
+		// Default: exclude deleted
+		baseQuery += ` AND status != 'deleted'`
+		countQuery += ` AND status != 'deleted'`
 	}
 	
 	baseQuery += ` ORDER BY created_at DESC LIMIT $` + fmt.Sprintf("%d", paramCount) + ` OFFSET $` + fmt.Sprintf("%d", paramCount+1)
@@ -220,7 +232,7 @@ func (r *achievementReferenceRepo) UpdateStatus(ctx context.Context, id uuid.UUI
 	
 	// Set timestamps based on status
 	switch status {
-case "submitted":
+	case "submitted":
 		query += `, submitted_at = $` + fmt.Sprintf("%d", paramCount)
 		params = append(params, time.Now())
 		paramCount++
@@ -243,6 +255,30 @@ func (r *achievementReferenceRepo) Delete(ctx context.Context, id uuid.UUID) err
 	return err
 }
 
+func (r *achievementReferenceRepo) SoftDelete(ctx context.Context, id uuid.UUID) error {
+	query := `
+		UPDATE achievement_references 
+		SET status = 'deleted', 
+		    updated_at = $1
+		WHERE id = $2 AND status = 'draft'  -- Hanya draft yang bisa di-delete
+	`
+	result, err := r.DB.ExecContext(ctx, query, time.Now(), id)
+	if err != nil {
+		return err
+	}
+	
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	
+	if rowsAffected == 0 {
+		return fmt.Errorf("achievement not found or not in draft status")
+	}
+	
+	return nil
+}
+
 func (r *achievementReferenceRepo) FindByAdvisorID(ctx context.Context, advisorID uuid.UUID, status string, page, limit int) ([]*models.AchievementReference, int, error) {
 	if page < 1 {
 		page = 1
@@ -262,7 +298,6 @@ func (r *achievementReferenceRepo) FindByAdvisorID(ctx context.Context, advisorI
 		return []*models.AchievementReference{}, 0, nil
 	}
 	
-	// Build query
 	baseQuery := `
 		SELECT ar.id, ar.student_id, ar.mongo_achievement_id, ar.status, 
 		       ar.submitted_at, ar.verified_at, ar.verified_by, ar.rejection_note,
@@ -275,11 +310,22 @@ func (r *achievementReferenceRepo) FindByAdvisorID(ctx context.Context, advisorI
 	params := []interface{}{studentIDs}
 	paramCount := 2
 	
-	if status != "" {
+	if status == "deleted" {
+		// Khusus minta deleted
 		baseQuery += fmt.Sprintf(` AND ar.status = $%d`, paramCount)
 		countQuery += fmt.Sprintf(` AND status = $%d`, paramCount)
 		params = append(params, status)
 		paramCount++
+	} else if status != "" {
+		// Filter status tertentu, exclude deleted
+		baseQuery += fmt.Sprintf(` AND ar.status = $%d AND ar.status != 'deleted'`, paramCount)
+		countQuery += fmt.Sprintf(` AND status = $%d AND status != 'deleted'`, paramCount)
+		params = append(params, status)
+		paramCount++
+	} else {
+		// Default: exclude deleted
+		baseQuery += ` AND ar.status != 'deleted'`
+		countQuery += ` AND status != 'deleted'`
 	}
 	
 	baseQuery += ` ORDER BY ar.created_at DESC LIMIT $` + fmt.Sprintf("%d", paramCount) + ` OFFSET $` + fmt.Sprintf("%d", paramCount+1)
@@ -344,11 +390,19 @@ func (r *achievementReferenceRepo) FindAll(ctx context.Context, status string, p
 	params := []interface{}{}
 	paramCount := 1
 	
-	if status != "" {
-		baseQuery += ` WHERE status = $1`
-		countQuery += ` WHERE status = $1`
+	if status == "deleted" {
+		baseQuery += ` WHERE status = 'deleted'`
+		countQuery += ` WHERE status = 'deleted'`
+	} else if status != "" {
+		// Filter status tertentu, exclude deleted
+		baseQuery += ` WHERE status = $1 AND status != 'deleted'`
+		countQuery += ` WHERE status = $1 AND status != 'deleted'`
 		params = append(params, status)
 		paramCount++
+	} else {
+		// Default: exclude deleted
+		baseQuery += ` WHERE status != 'deleted'`
+		countQuery += ` WHERE status != 'deleted'`
 	}
 	
 	baseQuery += ` ORDER BY created_at DESC LIMIT $` + fmt.Sprintf("%d", paramCount) + ` OFFSET $` + fmt.Sprintf("%d", paramCount+1)
