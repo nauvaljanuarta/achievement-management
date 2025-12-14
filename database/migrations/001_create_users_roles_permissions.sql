@@ -52,3 +52,28 @@ CREATE TABLE IF NOT EXISTS role_permissions (
     permission_id UUID REFERENCES permissions(id),
     PRIMARY KEY (role_id, permission_id)
 );
+
+-- permission mapping 
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 
+    r.id AS role_id,
+    p.id AS permission_id
+FROM roles r
+CROSS JOIN permissions p
+WHERE r.name = 'Admin';
+
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 
+    r.id AS role_id,
+    p.id AS permission_id
+FROM roles r, permissions p
+WHERE r.name = 'Mahasiswa' 
+AND p.name IN ('achievement:create', 'achievement:read', 'achievement:update', 'achievement:delete');
+
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 
+    r.id AS role_id,
+    p.id AS permission_id
+FROM roles r, permissions p
+WHERE r.name = 'Dosen Wali' 
+AND p.name IN ('achievement:read', 'achievement:verify');
