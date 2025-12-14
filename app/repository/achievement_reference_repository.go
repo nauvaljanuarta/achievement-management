@@ -20,22 +20,17 @@ type AchievementReferenceRepository interface {
 	UpdateStatus(ctx context.Context, id uuid.UUID, status string, verifiedBy *uuid.UUID, rejectionNote *string) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	SoftDelete(ctx context.Context, id uuid.UUID) error
-	
 	// For Dosen Wali
 	FindByAdvisorID(ctx context.Context, advisorID uuid.UUID, status string, page, limit int) ([]*models.AchievementReference, int, error)
-	
 	// For Admin
 	FindAll(ctx context.Context, status string, page, limit int) ([]*models.AchievementReference, int, error)
-	
 	// Status transitions
 	SubmitForVerification(ctx context.Context, id uuid.UUID) error
 	VerifyAchievement(ctx context.Context, id uuid.UUID, verifiedBy uuid.UUID) error
 	RejectAchievement(ctx context.Context, id uuid.UUID, verifiedBy uuid.UUID, rejectionNote string) error
-	
 	// Statistics
 	CountByStatus(ctx context.Context, studentID uuid.UUID) (map[string]int, error)
 	CountByStudentAndStatus(ctx context.Context, studentID uuid.UUID, status string) (int, error)
-	
 	// Get student IDs for advisor (helper)
 	GetStudentIDsByAdvisor(ctx context.Context, advisorID uuid.UUID) ([]uuid.UUID, error)
 }
@@ -155,7 +150,6 @@ func (r *achievementReferenceRepo) FindByStudentID(ctx context.Context, studentI
 		return nil, 0, err
 	}
 	
-	// Get paginated results
 	rows, err := r.DB.QueryContext(ctx, baseQuery, params...)
 	if err != nil {
 		return nil, 0, err
@@ -230,7 +224,6 @@ func (r *achievementReferenceRepo) UpdateStatus(ctx context.Context, id uuid.UUI
 	params := []interface{}{status, verifiedBy, rejectionNote, time.Now()}
 	paramCount := 5
 	
-	// Set timestamps based on status
 	switch status {
 	case "submitted":
 		query += `, submitted_at = $` + fmt.Sprintf("%d", paramCount)
@@ -246,6 +239,30 @@ func (r *achievementReferenceRepo) UpdateStatus(ctx context.Context, id uuid.UUI
 	params = append(params, id)
 	
 	_, err := r.DB.ExecContext(ctx, query, params...)
+	return err
+}
+
+func (r *achievementReferenceRepo) Update(ctx context.Context, ref *models.AchievementReference) error {
+	query := `
+		UPDATE achievement_references 
+		SET status = $1,
+		    submitted_at = $2,
+		    verified_at = $3,
+		    verified_by = $4,
+		    rejection_note = $5,
+		    updated_at = $6
+		WHERE id = $7
+	`
+	
+	_, err := r.DB.ExecContext(ctx, query,
+		ref.Status,
+		ref.SubmittedAt,
+		ref.VerifiedAt,
+		ref.VerifiedBy,
+		ref.RejectionNote,
+		ref.UpdatedAt,
+		ref.ID,
+	)
 	return err
 }
 
