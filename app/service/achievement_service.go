@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"achievement-backend/app/models"
@@ -1310,11 +1311,29 @@ func (s *AchievementService) UploadAttachments(c *fiber.Ctx) error {
 	var newAttachments []models.Attachment
 
 	for _, file := range files {
-		// Generate unique filename
+		cleanFileName := filepath.Base(file.Filename)
+		var safeFileNameBuilder strings.Builder
+		for _, r := range cleanFileName {
+			if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || 
+			   (r >= '0' && r <= '9') || r == '.' || r == '-' || r == '_' {
+				safeFileNameBuilder.WriteRune(r)
+			} else if r == ' ' {
+				safeFileNameBuilder.WriteRune('_') // ganti spasi dengan underscore
+			} else {
+				safeFileNameBuilder.WriteRune('_') // ganti karakter lain dengan underscore
+			}
+		}
+		safeFileName := safeFileNameBuilder.String()
+		
+		if safeFileName == "" {
+			safeFileName = "file_" + uuid.New().String()[:8]
+		}
+
+		// 3. Generate unique filename
 		uniqueFilename := fmt.Sprintf("%s_%s_%s",
 			time.Now().Format("20060102_150405"),
 			uuid.New().String()[:8],
-			file.Filename,
+			safeFileName,
 		)
 
 		// Define file path
@@ -1334,12 +1353,24 @@ func (s *AchievementService) UploadAttachments(c *fiber.Ctx) error {
 			continue // Skip file yang gagal
 		}
 
+		contentType := file.Header.Get("Content-Type")
+		var cleanContentType strings.Builder
+		for _, r := range contentType {
+			if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || 
+			   (r >= '0' && r <= '9') || r == '/' || r == '-' || r == '+' || r == '.' {
+				cleanContentType.WriteRune(r)
+			}
+		}
+		if cleanContentType.Len() == 0 {
+			cleanContentType.WriteString("application/octet-stream")
+		}
+
 		// Create attachment object
 		attachment := models.Attachment{
 			ID:         uuid.New(),
-			FileName:   file.Filename,
+			FileName:   safeFileName, 
 			FileURL:    "/" + filePath,
-			FileType:   file.Header.Get("Content-Type"),
+			FileType:   cleanContentType.String(), 
 			FileSize:   file.Size,
 			UploadedAt: time.Now(),
 		}
@@ -1347,11 +1378,11 @@ func (s *AchievementService) UploadAttachments(c *fiber.Ctx) error {
 		newAttachments = append(newAttachments, attachment)
 
 		uploadedAttachments = append(uploadedAttachments, fiber.Map{
-			"id":        attachment.ID,
-			"file_name": attachment.FileName,
-			"file_url":  attachment.FileURL,
-			"file_size": attachment.FileSize,
-			"file_type": attachment.FileType,
+			"id":         attachment.ID,
+			"file_name":  attachment.FileName,
+			"file_url":   attachment.FileURL,
+			"file_size":  attachment.FileSize,
+			"file_type":  attachment.FileType,
 			"uploaded_at": attachment.UploadedAt,
 		})
 	}
@@ -1364,9 +1395,27 @@ func (s *AchievementService) UploadAttachments(c *fiber.Ctx) error {
 	achievement.Attachments = append(achievement.Attachments, newAttachments...)
 
 	if err := s.achievementRepo.Update(ctx, mongoID, achievement); err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": "Failed to update achievement attachments",
-		})
+		// Cek apakah error karena UTF-8
+		if strings.Contains(err.Error(), "UTF-8") {
+			// Coba cleanup data sebelum save ulang
+			for i := range achievement.Attachments {
+				// Pastikan semua string field bersih
+				achievement.Attachments[i].FileName = cleanString(achievement.Attachments[i].FileName)
+				achievement.Attachments[i].FileType = cleanString(achievement.Attachments[i].FileType)
+				achievement.Attachments[i].FileURL = cleanString(achievement.Attachments[i].FileURL)
+			}
+			
+			// Coba save lagi
+			if err := s.achievementRepo.Update(ctx, mongoID, achievement); err != nil {
+				return c.Status(500).JSON(fiber.Map{
+					"error": "Failed to update achievement attachments after cleanup",
+				})
+			}
+		} else {
+			return c.Status(500).JSON(fiber.Map{
+				"error": "Failed to update achievement attachments",
+			})
+		}
 	}
 
 	// Update reference timestamp
@@ -1378,14 +1427,27 @@ func (s *AchievementService) UploadAttachments(c *fiber.Ctx) error {
 		"success": true,
 		"message": fmt.Sprintf("%d file(s) uploaded successfully", len(uploadedAttachments)),
 		"data": fiber.Map{
-			"id":             ref.ID,
+			"id":              ref.ID,
 			"new_attachments": uploadedAttachments,
-			"total_files":    len(uploadedAttachments),
-			"uploaded_at":    time.Now(),
+			"total_files":     len(uploadedAttachments),
+			"uploaded_at":     time.Now(),
 		},
 	})
 }
 
+// Simple clean string function (tetap dalam scope yang sama)
+func cleanString(s string) string {
+	var result strings.Builder
+	for _, r := range s {
+		// Hanya izinkan karakter ASCII yang aman
+		if r >= 32 && r <= 126 { // Printable ASCII characters
+			result.WriteRune(r)
+		} else {
+			result.WriteRune('_')
+		}
+	}
+	return result.String()
+}
 // Helper function to check if a string exists in a slice
 func contains(slice []string, item string) bool {
 	for _, s := range slice {
