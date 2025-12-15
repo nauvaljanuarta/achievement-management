@@ -50,8 +50,5 @@ func setupAchievementRoutes(
 	mahasiswaOnlyRoutes := protectedRoutes.Group("", 
 		middleware.RequireRole("Mahasiswa", roleRepo))
 	mahasiswaOnlyRoutes.Get("/my", achievementService.GetMyAchievements)
-	
-	// HANYA ADMIN - Operations khusus admin
-	// adminOnlyRoutes := protectedRoutes.Group("",
-	// 	middleware.RequireRole("Admin", roleRepo))
+
 }

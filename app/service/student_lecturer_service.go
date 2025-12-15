@@ -633,14 +633,33 @@ func (s *StudentLecturerService) GetLecturerAdvisees(c *fiber.Ctx) error {
 	// Check if lecturer exists
 	lecturer, err := s.lecturerRepo.GetByID(lecturerID)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Failed to get lecturer"})
+		return c.Status(500).JSON(fiber.Map{
+			"error":   "Failed to get lecturer",
+			"details": err.Error(),
+		})
 	}
 	if lecturer == nil {
 		return c.Status(404).JSON(fiber.Map{"error": "Lecturer not found"})
 	}
 
-	if lecturer.UserID != userID {
-		return c.Status(403).JSON(fiber.Map{"error": "Access denied"})
+	// Check authorization
+	// Jika middleware RBAC sudah mengecek permission, cukup cek ownership
+	currentUser, ok := c.Locals("user").(*models.User)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	role, err := s.roleRepo.GetByID(currentUser.RoleID)
+	if err != nil || role == nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to verify user role"})
+	}
+
+	// Admin bisa akses semua, Dosen Wali hanya akses data sendiri
+	if role.Name == "Dosen Wali" && lecturer.UserID != userID {
+		return c.Status(403).JSON(fiber.Map{
+			"error":   "Access denied",
+			"details": "You can only access your own advisees",
+		})
 	}
 
 	// Get query parameters
@@ -669,7 +688,17 @@ func (s *StudentLecturerService) GetLecturerAdvisees(c *fiber.Ctx) error {
 		user, _ := s.userRepo.GetByID(student.UserID)
 		if user != nil {
 			// Get achievement statistics for this student
-			stats, _ := s.achievementRepo.GetStatisticsByStudent(c.UserContext(), student.ID)
+			var statsTotal int
+			var verifiedCount int
+			
+			if stats, err := s.achievementRepo.GetStatisticsByStudent(c.UserContext(), student.ID); err == nil {
+				statsTotal = stats.TotalAchievements
+			}
+			
+			if count, err := s.achievementRefRepo.CountByStudentAndStatus(
+				c.UserContext(), student.ID, "verified"); err == nil {
+				verifiedCount = count
+			}
 
 			advisees = append(advisees, fiber.Map{
 				"id":            student.ID,
@@ -680,14 +709,8 @@ func (s *StudentLecturerService) GetLecturerAdvisees(c *fiber.Ctx) error {
 				"academic_year": student.AcademicYear,
 				"created_at":    student.CreatedAt,
 				"achievement_stats": fiber.Map{
-					"total": stats.TotalAchievements,
-					"verified": func() int {
-						if count, err := s.achievementRefRepo.CountByStudentAndStatus(
-							c.UserContext(), student.ID, "verified"); err == nil {
-							return count
-						}
-						return 0
-					}(),
+					"total":    statsTotal,
+					"verified": verifiedCount,
 				},
 			})
 		}

@@ -386,8 +386,7 @@ func (s *AchievementService) GetMyAchievements(c *fiber.Ctx) error {
 func (s *AchievementService) UpdateAchievement(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	
-	// Ambil Reference ID dari parameter (UUID)
-	refID := c.Params("id") // "550e8400-e29b-41d3-a456-426614174000"
+	refID := c.Params("id") 
 	
 	// Parse sebagai UUID
 	refUUID, err := uuid.Parse(refID)
@@ -894,7 +893,6 @@ func (s *AchievementService) RejectAchievement(c *fiber.Ctx) error {
 	})
 }
 
-// GetAchievementStatistics - Get statistics for achievements
 func (s *AchievementService) GetAchievementStatistics(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 
@@ -960,7 +958,6 @@ func (s *AchievementService) GetAchievementStatistics(c *fiber.Ctx) error {
 	})
 }
 
-// GetAchievementsByRole - List achievements filtered by role (untuk GET /achievements)
 func (s *AchievementService) GetAchievementsByRole(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 
