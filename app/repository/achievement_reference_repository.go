@@ -1,4 +1,3 @@
-// repository/achievement_reference_repository.go
 package repository
 
 import (
