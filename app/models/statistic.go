@@ -10,7 +10,6 @@ type AchievementStatistics struct {
 	TopTags          []string       `json:"top_tags"`
 	AveragePoints    float64        `json:"average_points"`
 }
-
 type AchievementSummary struct {
 	StudentID            uuid.UUID            `json:"student_id"`
 	TotalAchievements    int                  `json:"total_achievements"`
