@@ -15,6 +15,8 @@ func SetupRoutes(app *fiber.App) {
     roleRepo := repository.NewRoleRepository(db)
     studentRepo := repository.NewStudentRepository(db)
     lecturerRepo := repository.NewLecturerRepository(db)
+		achievementRepo := repository.NewAchievementRepository(database.GetMongoDB())
+		achievementRefRepo := repository.NewAchievementReferenceRepository(db)
     
     userService := service.NewUserService(userRepo, roleRepo, studentRepo, lecturerRepo)
     
@@ -23,6 +25,7 @@ func SetupRoutes(app *fiber.App) {
     setupAuthRoutes(examAPI, userRepo, roleRepo)
     setupUserRoutes(examAPI, userService, userRepo, roleRepo)
 		setupAchievementRoutes(examAPI,userRepo,roleRepo,studentRepo,lecturerRepo,)
+		setupStudentLecturerRoutes(examAPI,userRepo,studentRepo,lecturerRepo,achievementRepo, achievementRefRepo, roleRepo)
     
     examAPI.Get("/health", func(c *fiber.Ctx) error {
         return c.JSON(fiber.Map{
