@@ -191,7 +191,7 @@ func (r *lecturerRepo) GetWithUserDetails(page, limit int) ([]models.LecturerRes
 	offset := (page - 1) * limit
 
 	rows, err := r.DB.Query(`
-		SELECT l.id, l.user_id, u.full_name, u.email, 
+		SELECT l.id, l.user_id, u.full_name, u.email, u.username,
 		       l.lecturer_id, l.department, l.created_at
 		FROM lecturers l
 		JOIN users u ON l.user_id = u.id
@@ -208,7 +208,7 @@ func (r *lecturerRepo) GetWithUserDetails(page, limit int) ([]models.LecturerRes
 	for rows.Next() {
 		var l models.LecturerResponse
 		if err := rows.Scan(
-			&l.ID, &l.UserID, &l.FullName, &l.Email,
+			&l.ID, &l.UserID, &l.FullName, &l.Email, &l.Username,
 			&l.LecturerID, &l.Department, &l.CreatedAt,
 		); err != nil {
 			return nil, 0, err
