@@ -80,7 +80,7 @@ func TestCreateUser_Success(t *testing.T) {
 	req := httptest.NewRequest("POST", "/users", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, 3000)
 	if err != nil {
 			t.Fatalf("Request error: %v", err)
 	}
