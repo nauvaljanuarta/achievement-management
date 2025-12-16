@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http/httptest"
 	"testing"
+	"io"
 
 	"achievement-backend/app/models"
 
@@ -33,15 +34,18 @@ func TestCreateUser_Success(t *testing.T) {
 			},
 		},
 		userRepo: &MockUserRepository{
+			// GetByUsernameFn harus return nil (user belum ada)
 			GetByUsernameFn: func(username string) (*models.User, error) {
 				return nil, nil
 			},
+			// GetByEmailFn harus return nil (email belum ada)
 			GetByEmailFn: func(email string) (*models.User, error) {
 				return nil, nil
 			},
 			CreateFn: func(user *models.User) (uuid.UUID, error) {
 				return userID, nil
 			},
+			// GetByIDFn dipanggil di akhir fungsi Create untuk return response
 			GetByIDFn: func(id uuid.UUID) (*models.User, error) {
 				return &models.User{ID: userID, Username: "newuser"}, nil
 			},
@@ -51,6 +55,8 @@ func TestCreateUser_Success(t *testing.T) {
 				return uuid.New(), nil
 			},
 		},
+		lecturerRepo: &MockLecturerRepository{
+        },
 	}
 
 	app := setupUserApp(svc)
@@ -74,10 +80,15 @@ func TestCreateUser_Success(t *testing.T) {
 	req := httptest.NewRequest("POST", "/users", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, _ := app.Test(req)
+	resp, err := app.Test(req)
+	if err != nil {
+			t.Fatalf("Request error: %v", err)
+	}
 
 	if resp.StatusCode != 201 {
-		t.Errorf("Expected 201, got %d", resp.StatusCode)
+			bodyBytes, _ := io.ReadAll(resp.Body)
+			t.Errorf("Expected 201, got %d. Response: %s", resp.StatusCode, string(bodyBytes))
+			return
 	}
 }
 
