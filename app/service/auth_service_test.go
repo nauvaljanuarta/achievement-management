@@ -37,7 +37,9 @@ func hashPassword(password string) string {
 	return string(bytes)
 }
 
-
+/* =====================================================
+   TEST 1: LOGIN (Success)
+   ===================================================== */
 func TestLogin_Success(t *testing.T) {
 	// 1. Setup Data Dummy
 	userID := uuid.New()
@@ -102,7 +104,9 @@ func TestLogin_Success(t *testing.T) {
 	}
 }
 
-
+/* =====================================================
+   TEST 2: LOGIN (Fail - Wrong Password)
+   ===================================================== */
 func TestLogin_WrongPassword(t *testing.T) {
 	passwordHashed := hashPassword("passwordBenar")
 
@@ -135,7 +139,9 @@ func TestLogin_WrongPassword(t *testing.T) {
 	}
 }
 
-
+/* =====================================================
+   TEST 3: PROFILE (Mahasiswa)
+   ===================================================== */
 func TestProfile_Student(t *testing.T) {
 	userID := uuid.New()
 	roleID := uuid.New()
@@ -182,3 +188,4 @@ func TestProfile_Student(t *testing.T) {
 		t.Error("Student Profile should be present for Mahasiswa role")
 	}
 }
+
