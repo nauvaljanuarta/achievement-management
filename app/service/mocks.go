@@ -462,3 +462,15 @@ func (m *MockUserRepository) GetTotalInactiveCount() (int, error) {
 	if m.GetTotalInactiveCountFn != nil { return m.GetTotalInactiveCountFn() }
 	return 0, nil
 }
+
+type MockReportRepository struct {
+	// Perhatikan return type diubah jadi *models.AchievementStats
+	GetAchievementStatsFn func(ctx context.Context, actorID uuid.UUID, roleName string, startDate, endDate *time.Time) (*models.AchievementStats, error)
+}
+
+func (m *MockReportRepository) GetAchievementStats(ctx context.Context, actorID uuid.UUID, roleName string, startDate, endDate *time.Time) (*models.AchievementStats, error) {
+	if m.GetAchievementStatsFn != nil {
+		return m.GetAchievementStatsFn(ctx, actorID, roleName, startDate, endDate)
+	}
+	return nil, nil
+}
