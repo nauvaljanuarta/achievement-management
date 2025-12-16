@@ -101,7 +101,6 @@ func (s *ReportService) GetStatistics(c *fiber.Ctx) error {
 	})
 }
 
-// GetStudentReport - Handler untuk GET /api/v1/reports/student/:id
 func (s *ReportService) GetStudentReport(c *fiber.Ctx) error {
 	studentIDStr := c.Params("id")
 	studentID, err := uuid.Parse(studentIDStr)
