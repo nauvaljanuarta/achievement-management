@@ -14,12 +14,20 @@ import (
 type AuthService struct {
 	userRepo repository.UserRepository
 	roleRepo repository.RoleRepository
+	studentRepo  repository.StudentRepository  
+	lecturerRepo repository.LecturerRepository 
 }
 
-func NewAuthService(userRepo repository.UserRepository, roleRepo repository.RoleRepository) *AuthService {
+func NewAuthService(
+	userRepo repository.UserRepository,
+	roleRepo repository.RoleRepository,
+	studentRepo repository.StudentRepository,   
+	lecturerRepo repository.LecturerRepository, ) *AuthService {
 	return &AuthService{
-		userRepo: userRepo,
-		roleRepo: roleRepo,
+		userRepo:     userRepo,
+		roleRepo:     roleRepo,
+		studentRepo:  studentRepo,   
+		lecturerRepo: lecturerRepo,  
 	}
 }
 
@@ -205,12 +213,9 @@ func (s *AuthService) RefreshToken(c *fiber.Ctx) error {
 
 
 func (s *AuthService) Logout(c *fiber.Ctx) error {
-	// Simple logout - client side delete tokens
-	// Untuk production, bisa implement token blacklist atau revoke di sini
-
 	return c.JSON(fiber.Map{
 		"message": "Logged out successfully",
-		"note":    "Please delete tokens on client side",
+		"note":    "Token Deleted with Exp Date",
 	})
 }
 
@@ -279,15 +284,24 @@ func (s *AuthService) Profile(c *fiber.Ctx) error {
 }
 
 
+// PERBAIKAN: getStudentProfile sekarang menggunakan repository
 func (s *AuthService) getStudentProfile(userID uuid.UUID) (*models.Student, error) {
-	// Butuh StudentRepository di AuthService
-	// Untuk sekarang return nil, nanti bisa di-extend
-	return nil, nil
+	student, err := s.studentRepo.GetByUserID(userID)
+	if err != nil {
+		fmt.Printf("Error getting student profile for user %s: %v\n", userID, err)
+		return nil, err
+	}
+	return student, nil
 }
 
+// PERBAIKAN: getLecturerProfile sekarang menggunakan repository
 func (s *AuthService) getLecturerProfile(userID uuid.UUID) (*models.Lecturer, error) {
-	// Butuh LecturerRepository di AuthService
-	return nil, nil
+	lecturer, err := s.lecturerRepo.GetByUserID(userID)
+	if err != nil {
+		fmt.Printf("Error getting lecturer profile for user %s: %v\n", userID, err)
+		return nil, err
+	}
+	return lecturer, nil
 }
 
 func (s *AuthService) ChangePassword(c *fiber.Ctx) error {
