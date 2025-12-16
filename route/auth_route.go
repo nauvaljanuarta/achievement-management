@@ -12,8 +12,10 @@ func setupAuthRoutes(
 	router fiber.Router,
 	userRepo repository.UserRepository,
 	roleRepo repository.RoleRepository,
+	studentRepo repository.StudentRepository,
+	lecturerRepo repository.LecturerRepository,
 ) {
-	authService := service.NewAuthService(userRepo, roleRepo)
+	authService := service.NewAuthService(userRepo, roleRepo, studentRepo, lecturerRepo)
 	
 	authRoutes := router.Group("/auth")
 	
