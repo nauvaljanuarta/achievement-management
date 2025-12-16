@@ -23,7 +23,6 @@ func NewReportRepository() ReportRepository {
 	return &reportRepo{}
 }
 
-// app/repository/report_repository.go (FIXED)
 func (r *reportRepo) GetAchievementStats(ctx context.Context, actorID uuid.UUID, roleName string, startDate, endDate *time.Time) (*models.AchievementStats, error) {
 	stats := &models.AchievementStats{
 		ByType:             make(map[string]int),

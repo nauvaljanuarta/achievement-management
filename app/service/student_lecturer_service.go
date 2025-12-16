@@ -424,8 +424,7 @@ func (s *StudentLecturerService) GetStudentAchievements(c *fiber.Ctx) error {
 		},
 	})
 }
-// UpdateStudentAdvisor - PUT /api/v1/students/:id/advisor
-// Permission: user:manage (hanya Admin) - sudah di-check di middleware
+
 func (s *StudentLecturerService) UpdateStudentAdvisor(c *fiber.Ctx) error {
 	// Get student ID from params
 	studentIDStr := c.Params("id")
@@ -436,7 +435,7 @@ func (s *StudentLecturerService) UpdateStudentAdvisor(c *fiber.Ctx) error {
 
 	// Parse request body
 	var req struct {
-		AdvisorID *string `json:"advisor_id,omitempty"` // null untuk remove advisor
+		AdvisorID *string `json:"advisor_id,omitempty"` 
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
