@@ -23,6 +23,7 @@ func NewReportRepository() ReportRepository {
 	return &reportRepo{}
 }
 
+// app/repository/report_repository.go (FIXED)
 func (r *reportRepo) GetAchievementStats(ctx context.Context, actorID uuid.UUID, roleName string, startDate, endDate *time.Time) (*models.AchievementStats, error) {
 	stats := &models.AchievementStats{
 		ByType:             make(map[string]int),
@@ -61,7 +62,7 @@ func (r *reportRepo) GetAchievementStats(ctx context.Context, actorID uuid.UUID,
 		}
 	}
 
-	// 2. Total prestasi per periode
+	// 1. Total prestasi per periode
 	periodQuery := `
 		SELECT 
 			TO_CHAR(ar.created_at, 'YYYY-MM') as period,
@@ -84,7 +85,7 @@ func (r *reportRepo) GetAchievementStats(ctx context.Context, actorID uuid.UUID,
 		}
 	}
 
-	// 3. Get student IDs for MongoDB query
+	// 2. Get student IDs for MongoDB query
 	studentIDsQuery := `SELECT DISTINCT ar.student_id FROM achievement_references ar ` + whereClause
 	studentRows, err := database.PgDB.QueryContext(ctx, studentIDsQuery, queryParams...)
 	if err != nil {
@@ -104,7 +105,7 @@ func (r *reportRepo) GetAchievementStats(ctx context.Context, actorID uuid.UUID,
 		return stats, nil
 	}
 
-	// 4. Total prestasi per tipe (dari MongoDB)
+	// 3. Total prestasi per tipe (dari MongoDB)
 	typePipeline := bson.A{
 		bson.D{{Key: "$match", Value: bson.D{
 			{Key: "studentId", Value: bson.D{{Key: "$in", Value: studentIDStrings}}},
@@ -129,6 +130,7 @@ func (r *reportRepo) GetAchievementStats(ctx context.Context, actorID uuid.UUID,
 		}
 	}
 
+	// 4. Distribusi tingkat kompetisi
 	compPipeline := bson.A{
 		bson.D{{Key: "$match", Value: bson.D{
 			{Key: "studentId", Value: bson.D{{Key: "$in", Value: studentIDStrings}}},
@@ -154,24 +156,37 @@ func (r *reportRepo) GetAchievementStats(ctx context.Context, actorID uuid.UUID,
 		}
 	}
 
-	// 6. Top mahasiswa berprestasi (Admin & Dosen Wali only)
+	// 5. Top mahasiswa berprestasi (Admin & Dosen Wali only) - FIXED!
 	if roleName == "Admin" || roleName == "Dosen Wali" {
+		// Query sederhana: hitung prestasi verified per student
 		topStudentsQuery := `
-			SELECT s.id, u.full_name, 
-			       COUNT(ar.id) as achievement_count,
-			       COALESCE(SUM(a.points), 0) as total_points
+			SELECT 
+				s.id, 
+				u.full_name,
+				COUNT(ar.id) as achievement_count,
+				COUNT(ar.id) as total_count -- Untuk sementara, poin dari MongoDB nanti
 			FROM students s
 			JOIN users u ON s.user_id = u.id
-			LEFT JOIN achievement_references ar ON s.id = ar.student_id AND ar.status = 'verified'
-			LEFT JOIN achievements a ON ar.mongo_achievement_id = a._id::text
+			LEFT JOIN achievement_references ar ON s.id = ar.student_id 
+			WHERE ar.status = 'verified'
+		`
+
+		// Add filter untuk Dosen Wali
+		if roleName == "Dosen Wali" {
+			topStudentsQuery += ` AND s.advisor_id = $1`
+		}
+
+		// Add GROUP BY dan ORDER
+		topStudentsQuery += `
+			GROUP BY s.id, u.full_name
+			ORDER BY achievement_count DESC
+			LIMIT 10
 		`
 
 		var rows *sql.Rows
 		if roleName == "Dosen Wali" {
-			topStudentsQuery += ` WHERE s.advisor_id = $1 GROUP BY s.id, u.full_name ORDER BY total_points DESC LIMIT 10`
 			rows, _ = database.PgDB.QueryContext(ctx, topStudentsQuery, actorID)
 		} else {
-			topStudentsQuery += ` GROUP BY s.id, u.full_name ORDER BY total_points DESC LIMIT 10`
 			rows, _ = database.PgDB.QueryContext(ctx, topStudentsQuery)
 		}
 
@@ -180,12 +195,16 @@ func (r *reportRepo) GetAchievementStats(ctx context.Context, actorID uuid.UUID,
 			for rows.Next() {
 				var student models.StudentAchievementSum
 				var fullName string
-				if err := rows.Scan(&student.StudentID, &fullName, &student.TotalCount, &student.TotalPoints); err == nil {
+				var achievementCount int
+				if err := rows.Scan(&student.StudentID, &fullName, &achievementCount, &student.TotalCount); err == nil {
 					student.StudentName = fullName
+					student.TotalCount = achievementCount
+					student.TotalPoints = achievementCount * 10 // Default points sementara
 					stats.TopStudents = append(stats.TopStudents, student)
 				}
 			}
 		}
+		
 	}
 
 	return stats, nil
