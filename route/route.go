@@ -6,9 +6,13 @@ import (
     "achievement-backend/app/service"
 
     "github.com/gofiber/fiber/v2"
+    "github.com/gofiber/swagger"
+    _ "achievement-backend/docs"
+
 )
 
 func SetupRoutes(app *fiber.App) {
+  
     db := database.PgDB
     
     userRepo := repository.NewUserRepository(db)
@@ -20,7 +24,6 @@ func SetupRoutes(app *fiber.App) {
 		reportRepo := repository.NewReportRepository()
     
     userService := service.NewUserService(userRepo, roleRepo, studentRepo, lecturerRepo)
-    
     examAPI := app.Group("/exam/api")
     
     setupAuthRoutes(examAPI, userRepo, roleRepo,studentRepo, lecturerRepo)
@@ -36,4 +39,5 @@ func SetupRoutes(app *fiber.App) {
             "version": "1.0",
         })
     })
+    examAPI.Get("/swagger/*", swagger.HandlerDefault)
 }

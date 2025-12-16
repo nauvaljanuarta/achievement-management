@@ -1,4 +1,18 @@
+basePath: /exam/api
+host: localhost:3000
 info:
-  contact: {}
+  contact:
+    email: support@example.com
+    name: API Support
+    url: http://localhost:3000/support
+  description: Backend API untuk manajemen prestasi mahasiswa
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://localhost:3000//
+  title: Achievement Management Backend API
+  version: "1.0"
 paths: {}
+schemes:
+- http
 swagger: "2.0"

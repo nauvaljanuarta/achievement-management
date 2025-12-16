@@ -1,7 +1,24 @@
 {
+    "schemes": [
+        "http"
+    ],
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "Backend API untuk manajemen prestasi mahasiswa",
+        "title": "Achievement Management Backend API",
+        "termsOfService": "http://localhost:3000//",
+        "contact": {
+            "name": "API Support",
+            "url": "http://localhost:3000/support",
+            "email": "support@example.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0"
     },
+    "host": "localhost:3000",
+    "basePath": "/exam/api",
     "paths": {}
 }
