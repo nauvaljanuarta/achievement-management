@@ -31,6 +31,19 @@ func NewAuthService(
 	}
 }
 
+// Login godoc
+// @Summary Login user
+// @Description Login menggunakan username atau email dan password
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body models.LoginRequest true "Login Request"
+// @Success 200 {object} models.LoginResponse "Login berhasil"
+// @Failure 400 {object} object{error=string} "Invalid request body"
+// @Failure 401 {object} object{error=string} "Invalid credentials"
+// @Failure 403 {object} object{error=string} "Account is inactive"
+// @Failure 500 {object} object{error=string,details=string} "Server error"
+// @Router /auth/login [post]
 func (s *AuthService) Login(c *fiber.Ctx) error {
 	var req models.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -120,6 +133,19 @@ func (s *AuthService) Login(c *fiber.Ctx) error {
 }
 
 
+// RefreshToken godoc
+// @Summary Refresh Access Token
+// @Description Generates a new access token and refresh token using a valid refresh token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body object{refreshToken=string} true "Refresh Token Request"
+// @Success 200 {object} object{token=string,refreshToken=string,user=object,permissions=[]string,roleName=string} "Successfully refreshed tokens"
+// @Failure 400 {object} object{error=string} "Invalid request body or missing refresh token"
+// @Failure 401 {object} object{error=string,details=string} "Invalid/expired refresh token or user not found"
+// @Failure 403 {object} object{error=string} "Account is inactive"
+// @Failure 500 {object} object{error=string,details=string} "Server error"
+// @Router /auth/refresh [post]
 func (s *AuthService) RefreshToken(c *fiber.Ctx) error {
 	var req struct {
 		RefreshToken string `json:"refreshToken"`
@@ -211,7 +237,14 @@ func (s *AuthService) RefreshToken(c *fiber.Ctx) error {
 	})
 }
 
-
+// Logout godoc
+// @Summary Logout user
+// @Description Logout user (client-side token invalidation)
+// @Tags Authentication
+// @Produce json
+// @Success 200 {object} object{message=string,note=string} "Logout berhasil"
+// @Security BearerAuth
+// @Router /auth/logout [post]
 func (s *AuthService) Logout(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message": "Logged out successfully",
@@ -219,7 +252,17 @@ func (s *AuthService) Logout(c *fiber.Ctx) error {
 	})
 }
 
-
+// Profile godoc
+// @Summary Get user profile
+// @Description Mengambil data profil user beserta role, permissions, dan data tambahan (mahasiswa/dosen wali)
+// @Tags Authentication
+// @Produce json
+// @Success 200 {object} object{data=object} "Profil user"
+// @Failure 401 {object} object{error=string} "User not authenticated"
+// @Failure 404 {object} object{error=string} "User not found"
+// @Failure 500 {object} object{error=string,details=string} "Server error"
+// @Security BearerAuth
+// @Router /auth/profile [get]
 func (s *AuthService) Profile(c *fiber.Ctx) error {
 	userID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
