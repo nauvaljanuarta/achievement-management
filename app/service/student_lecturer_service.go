@@ -40,6 +40,24 @@ func NewStudentLecturerService(
 	}
 }
 
+// GetAllStudents godoc
+// @Summary Get all students
+// @Description
+// Mengambil daftar mahasiswa
+// @Tags Student
+// @Security BearerAuth
+// @Produce json
+// @Param page query int false "Page number (default: 1)"
+// @Param limit query int false "Limit per page (default: 10, max: 100)"
+// @Param search query string false "Search by student name"
+// @Param program_study query string false "Filter by program study"
+// @Param academic_year query string false "Filter by academic year"
+// @Param has_advisor query bool false "Filter students with/without advisor"
+//
+// @Success 200 {object} map[string]interface{} "List of students"
+// @Failure 500 {object} map[string]string "Failed to get students"
+//
+// @Router /students [get]
 func (s *StudentLecturerService) GetAllStudents(c *fiber.Ctx) error {
 	// Get query parameters
 	page := c.QueryInt("page", 1)
@@ -186,6 +204,23 @@ func (s *StudentLecturerService) GetAllStudents(c *fiber.Ctx) error {
 	})
 }
 
+// GetStudentByID godoc
+// @Summary Get student detail
+// @Description
+// Mengambil detail mahasiswa berdasarkan ID.
+// @Tags Student
+// @Security BearerAuth
+// @Produce json
+//
+// @Param id path string true "Student UUID"
+//
+// @Success 200 {object} map[string]interface{} "Student detail"
+// @Failure 400 {object} map[string]string "Invalid student ID"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 403 {object} map[string]string "Access denied"
+// @Failure 404 {object} map[string]string "Student not found"
+// @Failure 500 {object} map[string]string "Server error"
+// @Router /students/{id} [get]
 func (s *StudentLecturerService) GetStudentByID(c *fiber.Ctx) error {
 	// Get student ID from params
 	studentIDStr := c.Params("id")
@@ -276,6 +311,27 @@ func (s *StudentLecturerService) GetStudentByID(c *fiber.Ctx) error {
 	})
 }
 
+// GetStudentAchievements godoc
+// @Summary Get student achievements
+// @Description
+// Mengambil daftar prestasi mahasiswa tertentu.
+// @Tags Student Achievement
+// @Security BearerAuth
+// @Produce json
+//
+// @Param id path string true "Student UUID"
+// @Param status query string false "Filter achievement status"
+// @Param page query int false "Page number"
+// @Param limit query int false "Limit per page"
+//
+// @Success 200 {object} map[string]interface{} "Student achievements list"
+// @Failure 400 {object} map[string]string "Invalid student ID"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 403 {object} map[string]string "Access denied"
+// @Failure 404 {object} map[string]string "Student not found"
+// @Failure 500 {object} map[string]string "Failed to get achievements"
+//
+// @Router /students/{id}/achievements [get]
 func (s *StudentLecturerService) GetStudentAchievements(c *fiber.Ctx) error {
 	// Get student ID from params
 	studentIDStr := c.Params("id")
@@ -425,6 +481,29 @@ func (s *StudentLecturerService) GetStudentAchievements(c *fiber.Ctx) error {
 	})
 }
 
+// UpdateStudentAdvisor godoc
+// @Summary Assign or remove student advisor
+// @Description
+// Mengatur dosen wali mahasiswa.
+// - Jika advisor_id dikirim → assign advisor
+// - Jika advisor_id kosong/null → remove advisor
+//
+// Hanya bisa dilakukan oleh Admin.
+//
+// @Tags Student
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+//
+// @Param id path string true "Student UUID"
+// @Param body body object true "Advisor payload"
+//
+// @Success 200 {object} map[string]interface{} "Advisor updated"
+// @Failure 400 {object} map[string]string "Invalid request"
+// @Failure 404 {object} map[string]string "Student or lecturer not found"
+// @Failure 500 {object} map[string]string "Failed to update advisor"
+//
+// @Router /students/{id}/advisor [put]
 func (s *StudentLecturerService) UpdateStudentAdvisor(c *fiber.Ctx) error {
 	// Get student ID from params
 	studentIDStr := c.Params("id")
@@ -521,6 +600,32 @@ func (s *StudentLecturerService) UpdateStudentAdvisor(c *fiber.Ctx) error {
 	})
 }
 
+// GetLecturerAdvisees godoc
+// @Summary Get lecturer advisees
+// @Description
+// Mengambil daftar mahasiswa bimbingan dosen.
+// Akses:
+// - Admin: semua dosen
+// - Dosen Wali: hanya data sendiri
+//
+// Menampilkan statistik prestasi mahasiswa.
+//
+// @Tags Lecturer
+// @Security BearerAuth
+// @Produce json
+//
+// @Param id path string true "Lecturer UUID"
+// @Param page query int false "Page number"
+// @Param limit query int false "Limit per page"
+//
+// @Success 200 {object} map[string]interface{} "Lecturer advisees list"
+// @Failure 400 {object} map[string]string "Invalid lecturer ID"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 403 {object} map[string]string "Access denied"
+// @Failure 404 {object} map[string]string "Lecturer not found"
+// @Failure 500 {object} map[string]string "Failed to get advisees"
+//
+// @Router /lecturers/{id}/advisees [get]
 func (s *StudentLecturerService) GetAllLecturers(c *fiber.Ctx) error {
 	// Get query parameters
 	page := c.QueryInt("page", 1)
@@ -615,6 +720,32 @@ func (s *StudentLecturerService) GetAllLecturers(c *fiber.Ctx) error {
 	})
 }
 
+// GetLecturerAdvisees godoc
+// @Summary Get lecturer advisees
+// @Description
+// Mengambil daftar mahasiswa bimbingan dosen.
+// Akses:
+// - Admin: semua dosen
+// - Dosen Wali: hanya data sendiri
+//
+// Menampilkan statistik prestasi mahasiswa.
+//
+// @Tags Lecturer
+// @Security BearerAuth
+// @Produce json
+//
+// @Param id path string true "Lecturer UUID"
+// @Param page query int false "Page number"
+// @Param limit query int false "Limit per page"
+//
+// @Success 200 {object} map[string]interface{} "Lecturer advisees list"
+// @Failure 400 {object} map[string]string "Invalid lecturer ID"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 403 {object} map[string]string "Access denied"
+// @Failure 404 {object} map[string]string "Lecturer not found"
+// @Failure 500 {object} map[string]string "Failed to get advisees"
+//
+// @Router /lecturers/{id}/advisees [get]
 func (s *StudentLecturerService) GetLecturerAdvisees(c *fiber.Ctx) error {
 	// Get lecturer ID from params
 	lecturerIDStr := c.Params("id")

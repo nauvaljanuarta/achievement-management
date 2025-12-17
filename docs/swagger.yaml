@@ -1,5 +1,94 @@
 basePath: exam/api/
 definitions:
+  models.AchievementDetails:
+    properties:
+      authors:
+        items:
+          type: string
+        type: array
+      certification_name:
+        type: string
+      certification_number:
+        type: string
+      competition_level:
+        type: string
+      competition_name:
+        type: string
+      custom_fields:
+        additionalProperties: true
+        type: object
+      event_date:
+        type: string
+      issn:
+        type: string
+      issued_by:
+        type: string
+      location:
+        type: string
+      medal_type:
+        type: string
+      organization_name:
+        type: string
+      organizer:
+        type: string
+      period:
+        $ref: '#/definitions/models.Period'
+      position:
+        type: string
+      publication_title:
+        type: string
+      publication_type:
+        type: string
+      publisher:
+        type: string
+      rank:
+        type: integer
+      score:
+        type: integer
+      valid_until:
+        type: string
+    type: object
+  models.Attachment:
+    properties:
+      file_name:
+        type: string
+      file_size:
+        type: integer
+      file_type:
+        type: string
+      file_url:
+        type: string
+      id:
+        type: string
+      uploaded_at:
+        type: string
+    type: object
+  models.CreateAchievementRequest:
+    properties:
+      achievement_type:
+        type: string
+      attachments:
+        items:
+          $ref: '#/definitions/models.Attachment'
+        type: array
+      description:
+        type: string
+      details:
+        $ref: '#/definitions/models.AchievementDetails'
+      points:
+        type: integer
+      student_id:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    required:
+    - achievement_type
+    - title
+    type: object
   models.LoginRequest:
     properties:
       email:
@@ -27,6 +116,13 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/models.User'
+    type: object
+  models.Period:
+    properties:
+      end:
+        type: string
+      start:
+        type: string
     type: object
   models.User:
     properties:
@@ -61,6 +157,365 @@ info:
   title: Achievement Management Backend API
   version: "1.0"
 paths:
+  /achievements:
+    get:
+      parameters:
+      - description: Filter status (draft, submitted, verified, rejected, deleted)
+        in: query
+        name: status
+        type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10, max: 100)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of achievements with pagination
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get achievements by user role
+      tags:
+      - Achievement
+    post:
+      consumes:
+      - application/json
+      description: Create achievement by mahasiswa (self) or admin (any student)
+      parameters:
+      - description: Achievement payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateAchievementRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create new achievement
+      tags:
+      - Achievement
+  /achievements/{id}:
+    delete:
+      description: Soft delete draft achievement
+      parameters:
+      - description: Achievement Reference ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete achievement
+      tags:
+      - Achievement
+    get:
+      description: Get achievement detail by reference ID
+      parameters:
+      - description: Achievement Reference ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get achievement detail
+      tags:
+      - Achievement
+    put:
+      consumes:
+      - application/json
+      description: Update draft achievement (owner or admin)
+      parameters:
+      - description: Achievement Reference ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update payload
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update achievement
+      tags:
+      - Achievement
+  /achievements/{id}/attachments:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Achievement Reference ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Attachment files
+        in: formData
+        name: attachments
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload achievement attachments
+      tags:
+      - Achievement
+  /achievements/{id}/history:
+    get:
+      description: Riwayat perubahan status prestasi (draft, submitted, verified,
+        rejected, deleted)
+      parameters:
+      - description: Achievement Reference ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Achievement history detail
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid achievement ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Achievement not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get achievement history
+      tags:
+      - Achievement
+  /achievements/{id}/submit:
+    post:
+      parameters:
+      - description: Achievement Reference ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Submit achievement
+      tags:
+      - Achievement
   /auth/login:
     post:
       consumes:
@@ -246,6 +701,373 @@ paths:
       summary: Refresh Access Token
       tags:
       - Authentication
+  /lecturers/{id}/advisees:
+    get:
+      parameters:
+      - description: Lecturer UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lecturer advisees list
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid lecturer ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Lecturer not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to get advisees
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get lecturer advisees
+      tags:
+      - Lecturer
+  /reports/statistics:
+    get:
+      parameters:
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Statistics data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to generate statistics
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get achievement statistics
+      tags:
+      - Report
+  /reports/student/{id}:
+    get:
+      parameters:
+      - description: Student UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Student report statistics
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid student ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Student not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to generate report
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get student achievement report
+      tags:
+      - Report
+  /students:
+    get:
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Limit per page (default: 10, max: 100)'
+        in: query
+        name: limit
+        type: integer
+      - description: Search by student name
+        in: query
+        name: search
+        type: string
+      - description: Filter by program study
+        in: query
+        name: program_study
+        type: string
+      - description: Filter by academic year
+        in: query
+        name: academic_year
+        type: string
+      - description: Filter students with/without advisor
+        in: query
+        name: has_advisor
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of students
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get students
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all students
+      tags:
+      - Student
+  /students/{id}:
+    get:
+      parameters:
+      - description: Student UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Student detail
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid student ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Student not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get student detail
+      tags:
+      - Student
+  /students/{id}/achievements:
+    get:
+      parameters:
+      - description: Student UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Filter achievement status
+        in: query
+        name: status
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Student achievements list
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid student ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Student not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to get achievements
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get student achievements
+      tags:
+      - Student Achievement
+  /students/{id}/advisor:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Student UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Advisor payload
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Advisor updated
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Student or lecturer not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to update advisor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Assign or remove student advisor
+      tags:
+      - Student
 schemes:
 - http
 securityDefinitions:
