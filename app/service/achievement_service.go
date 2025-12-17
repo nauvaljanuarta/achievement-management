@@ -43,6 +43,20 @@ func NewAchievementService(
 	}
 }
 
+// CreateAchievement godoc
+// @Summary Create new achievement
+// @Description Create achievement by mahasiswa (self) or admin (any student)
+// @Tags Achievement
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param body body models.CreateAchievementRequest true "Achievement payload"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /achievements [post]
 func (s *AchievementService) CreateAchievement(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 
@@ -175,6 +189,19 @@ func (s *AchievementService) CreateAchievement(c *fiber.Ctx) error {
 	})
 }
 
+// GetAchievementByID godoc
+// @Summary Get achievement detail
+// @Description Get achievement detail by reference ID
+// @Tags Achievement
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Achievement Reference ID (UUID)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /achievements/{id} [get]
 func (s *AchievementService) GetAchievementByID(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	
@@ -383,6 +410,21 @@ func (s *AchievementService) GetMyAchievements(c *fiber.Ctx) error {
 	})
 }
 
+// UpdateAchievement godoc
+// @Summary Update achievement
+// @Description Update draft achievement (owner or admin)
+// @Tags Achievement
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "Achievement Reference ID"
+// @Param body body map[string]interface{} true "Update payload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /achievements/{id} [put]
 func (s *AchievementService) UpdateAchievement(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	
@@ -550,6 +592,19 @@ case "Mahasiswa":
 	})
 }
 
+// DeleteAchievement godoc
+// @Summary Delete achievement
+// @Description Soft delete draft achievement
+// @Tags Achievement
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Achievement Reference ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /achievements/{id} [delete]
 func (s *AchievementService) DeleteAchievement(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	
@@ -621,6 +676,13 @@ case "Mahasiswa":
 	})
 }
 
+// @Summary Submit achievement
+// @Tags Achievement
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Achievement Reference ID"
+// @Success 200 {object} map[string]interface{}
+// @Router /achievements/{id}/submit [post]
 func (s *AchievementService) SubmitAchievement(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	
@@ -770,6 +832,14 @@ func (s *AchievementService) GetAdviseeAchievements(c *fiber.Ctx) error {
 	})
 }
 
+// @Summary Verify achievement
+// @Tags Achievement
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Achievement Reference ID"
+// @Success 200 {object} map[string]interface{}
+// @Router /achievements/{id}/verify [post]
+
 func (s *AchievementService) VerifyAchievement(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	
@@ -826,6 +896,16 @@ func (s *AchievementService) VerifyAchievement(c *fiber.Ctx) error {
 		},
 	})
 }
+
+// @Summary Reject achievement
+// @Tags Achievement
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "Achievement Reference ID"
+// @Param body body object true "Rejection note"
+// @Success 200 {object} map[string]interface{}
+// @Router /achievements/{id}/reject [post]
 
 func (s *AchievementService) RejectAchievement(c *fiber.Ctx) error {
 	ctx := c.UserContext()
@@ -893,71 +973,30 @@ func (s *AchievementService) RejectAchievement(c *fiber.Ctx) error {
 	})
 }
 
-func (s *AchievementService) GetAchievementStatistics(c *fiber.Ctx) error {
-	ctx := c.UserContext()
-
-	userID, ok := c.Locals("user_id").(uuid.UUID)
-	if !ok {
-		return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
-	}
-
-	currentUser, err := s.userRepo.GetByID(userID)
-	if err != nil || currentUser == nil {
-		return c.Status(401).JSON(fiber.Map{"error": "User not found"})
-	}
-
-	// Get role
-	role, err := s.roleRepo.GetByID(currentUser.RoleID)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Failed to get user role"})
-	}
-	if role == nil {
-		return c.Status(403).JSON(fiber.Map{"error": "Role not found"})
-	}
-
-	var statistics *models.AchievementStatistics
-	var errStat error
-
-	switch role.Name {
-	case "Mahasiswa":
-		student, _ := s.studentRepo.GetByUserID(userID)
-		if student != nil {
-			statistics, errStat = s.achievementRepo.GetStatisticsByStudent(ctx, student.ID)
-		} else {
-			return c.Status(403).JSON(fiber.Map{"error": "User is not a student"})
-		}
-	case "Dosen Wali":
-		lecturer, _ := s.lecturerRepo.GetByUserID(userID)
-		if lecturer != nil {
-			statistics, errStat = s.achievementRepo.GetStatisticsByAdvisor(ctx, lecturer.ID)
-		} else {
-			return c.Status(403).JSON(fiber.Map{"error": "User is not a lecturer"})
-		}
-	case "Admin":
-		// For admin, return empty or implement admin-specific stats
-		statistics = &models.AchievementStatistics{
-			TotalAchievements: 0,
-			ByType:            make(map[string]int),
-			ByPeriod:          make(map[string]int),
-			TopTags:           []string{},
-			AveragePoints:     0,
-		}
-	default:
-		return c.Status(403).JSON(fiber.Map{"error": "Access denied"})
-	}
-
-	if errStat != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error":   "Failed to get statistics",
-			"details": errStat.Error(),
-		})
-	}
-
-	return c.JSON(fiber.Map{
-		"data": statistics,
-	})
-}
-
+// GetAchievementsByRole godoc
+// @Summary Get achievements by user role
+// @Description
+// Mengambil daftar prestasi berdasarkan role pengguna:
+// - Mahasiswa: hanya prestasi miliknya
+// - Dosen Wali: prestasi mahasiswa bimbingannya
+// - Admin: semua prestasi
+//
+// Mendukung pagination dan filter status.
+// Secara default prestasi berstatus "deleted" tidak ditampilkan kecuali diminta eksplisit.
+//
+// @Tags Achievement
+// @Security BearerAuth
+// @Produce json
+//
+// @Param status query string false "Filter status (draft, submitted, verified, rejected, deleted)"
+// @Param page query int false "Page number (default: 1)"
+// @Param limit query int false "Items per page (default: 10, max: 100)"
+//
+// @Success 200 {object} map[string]interface{} "List of achievements with pagination"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 403 {object} map[string]string "Access denied"
+// @Failure 500 {object} map[string]string "Server error"
+// @Router /achievements [get]
 func (s *AchievementService) GetAchievementsByRole(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 
@@ -1096,6 +1135,20 @@ func (s *AchievementService) GetAchievementsByRole(c *fiber.Ctx) error {
 	})
 }
 
+// GetAchievementHistory godoc
+// @Summary Get achievement history
+// @Description Riwayat perubahan status prestasi (draft, submitted, verified, rejected, deleted)
+// @Tags Achievement
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Achievement Reference ID (UUID)"
+// @Success 200 {object} map[string]interface{} "Achievement history detail"
+// @Failure 400 {object} map[string]string "Invalid achievement ID"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 403 {object} map[string]string "Access denied"
+// @Failure 404 {object} map[string]string "Achievement not found"
+// @Failure 500 {object} map[string]string "Server error"
+// @Router /achievements/{id}/history [get]
 func (s *AchievementService) GetAchievementHistory(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	
@@ -1245,6 +1298,19 @@ case "Admin":
 	})
 }
 
+// UploadAttachments godoc
+// @Summary Upload achievement attachments
+// @Tags Achievement
+// @Security BearerAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path string true "Achievement Reference ID"
+// @Param attachments formData file true "Attachment files"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /achievements/{id}/attachments [post]
 func (s *AchievementService) UploadAttachments(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	
