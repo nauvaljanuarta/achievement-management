@@ -36,6 +36,29 @@ func NewReportService(
 	}
 }
 
+// GetStatistics godoc
+// @Summary Get achievement statistics
+// @Description
+// Mengambil statistik prestasi berdasarkan role pengguna:
+// - Admin: statistik keseluruhan
+// - Dosen Wali: statistik mahasiswa bimbingannya
+// - Mahasiswa: statistik prestasinya sendiri
+//
+// Mendukung filter rentang tanggal menggunakan start_date dan end_date.
+//
+// @Tags Report
+// @Security BearerAuth
+// @Produce json
+//
+// @Param start_date query string false "Start date (YYYY-MM-DD)"
+// @Param end_date query string false "End date (YYYY-MM-DD)"
+//
+// @Success 200 {object} map[string]interface{} "Statistics data"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 403 {object} map[string]string "Access denied"
+// @Failure 500 {object} map[string]string "Failed to generate statistics"
+//
+// @Router /reports/statistics [get]
 func (s *ReportService) GetStatistics(c *fiber.Ctx) error {
 	currentUser, ok := c.Locals("user").(*models.User)
 	if !ok {
@@ -101,7 +124,33 @@ func (s *ReportService) GetStatistics(c *fiber.Ctx) error {
 	})
 }
 
-// GetStudentReport - Handler untuk GET /api/v1/reports/student/:id
+// GetStudentReport godoc
+// @Summary Get student achievement report
+// @Description
+// Mengambil laporan statistik prestasi untuk mahasiswa tertentu.
+// Akses dibatasi berdasarkan role:
+// - Admin: bebas
+// - Dosen Wali: hanya mahasiswa bimbingannya
+// - Mahasiswa: hanya data miliknya sendiri
+//
+// Mendukung filter rentang tanggal.
+//
+// @Tags Report
+// @Security BearerAuth
+// @Produce json
+//
+// @Param id path string true "Student UUID"
+// @Param start_date query string false "Start date (YYYY-MM-DD)"
+// @Param end_date query string false "End date (YYYY-MM-DD)"
+//
+// @Success 200 {object} map[string]interface{} "Student report statistics"
+// @Failure 400 {object} map[string]string "Invalid student ID"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 403 {object} map[string]string "Access denied"
+// @Failure 404 {object} map[string]string "Student not found"
+// @Failure 500 {object} map[string]string "Failed to generate report"
+//
+// @Router /reports/student/{id} [get]
 func (s *ReportService) GetStudentReport(c *fiber.Ctx) error {
 	studentIDStr := c.Params("id")
 	studentID, err := uuid.Parse(studentIDStr)
