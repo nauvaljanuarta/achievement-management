@@ -34,6 +34,17 @@ func NewUserService(
 	}
 }
 
+// GetAll godoc
+// @Summary Get all active users
+// @Description Mengambil daftar user aktif dengan pagination
+// @Tags User
+// @Security BearerAuth
+// @Produce json
+// @Param page query int false "Page number"
+// @Param limit query int false "Limit per page (max 100)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} map[string]string
+// @Router /users [get]
 func (s *UserService) GetAll(c *fiber.Ctx) error {
 	page := c.QueryInt("page", 1)
 	limit := c.QueryInt("limit", 10)
@@ -110,6 +121,18 @@ func (s *UserService) GetInactiveUsers(c *fiber.Ctx) error {
 	})
 }
 
+// GetByID godoc
+// @Summary Get user by ID
+// @Description Mengambil detail user berdasarkan UUID (hanya user aktif)
+// @Tags User
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "User UUID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{id} [get]
 func (s *UserService) GetByID(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
@@ -138,6 +161,19 @@ func (s *UserService) GetByID(c *fiber.Ctx) error {
 	})
 }
 
+// Create godoc
+// @Summary Create new user
+// @Description Membuat user baru beserta profil (Mahasiswa / Dosen Wali)
+// @Tags User
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param body body models.CreateUserRequest true "Create user payload"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 409 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users [post]
 func (s *UserService) Create(c *fiber.Ctx) error {
 	var req models.CreateUserRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -291,7 +327,21 @@ func (s *UserService) createUserProfile(user *models.User, req *models.CreateUse
 	return nil
 }
 
-
+// Update godoc
+// @Summary Update user
+// @Description Update data user (email, password, fullname, dll)
+// @Tags User
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "User UUID"
+// @Param body body models.UpdateUserRequest true "Update user payload"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 409 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{id} [put]
 func (s *UserService) Update(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
@@ -363,7 +413,18 @@ func (s *UserService) Update(c *fiber.Ctx) error {
 	})
 }
 
-
+// Delete godoc
+// @Summary Delete user
+// @Description Soft delete user (set inactive)
+// @Tags User
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "User UUID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{id} [delete]
 func (s *UserService) Delete(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
@@ -400,6 +461,20 @@ func (s *UserService) Delete(c *fiber.Ctx) error {
 	})
 }
 
+// UpdateRole godoc
+// @Summary Update user role
+// @Description Mengubah role user
+// @Tags User
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "User UUID"
+// @Param body body object true "Role payload"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{id}/role [put]
 func (s *UserService) UpdateRole(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)

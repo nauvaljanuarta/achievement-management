@@ -89,6 +89,39 @@ definitions:
     - achievement_type
     - title
     type: object
+  models.CreateUserRequest:
+    properties:
+      academicYear:
+        type: string
+      advisorId:
+        type: string
+      department:
+        type: string
+      email:
+        type: string
+      fullName:
+        type: string
+      lecturerId:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      programStudy:
+        type: string
+      roleId:
+        type: string
+      studentId:
+        type: string
+      username:
+        minLength: 3
+        type: string
+    required:
+    - email
+    - fullName
+    - password
+    - roleId
+    - username
+    type: object
   models.LoginRequest:
     properties:
       email:
@@ -122,6 +155,20 @@ definitions:
       end:
         type: string
       start:
+        type: string
+    type: object
+  models.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      fullName:
+        type: string
+      isActive:
+        type: boolean
+      password:
+        minLength: 6
+        type: string
+      roleId:
         type: string
     type: object
   models.User:
@@ -1068,6 +1115,262 @@ paths:
       summary: Assign or remove student advisor
       tags:
       - Student
+  /users:
+    get:
+      description: Mengambil daftar user aktif dengan pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Limit per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all active users
+      tags:
+      - User
+    post:
+      consumes:
+      - application/json
+      description: Membuat user baru beserta profil (Mahasiswa / Dosen Wali)
+      parameters:
+      - description: Create user payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create new user
+      tags:
+      - User
+  /users/{id}:
+    delete:
+      description: Soft delete user (set inactive)
+      parameters:
+      - description: User UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete user
+      tags:
+      - User
+    get:
+      description: Mengambil detail user berdasarkan UUID (hanya user aktif)
+      parameters:
+      - description: User UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
+      tags:
+      - User
+    put:
+      consumes:
+      - application/json
+      description: Update data user (email, password, fullname, dll)
+      parameters:
+      - description: User UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update user payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - User
+  /users/{id}/role:
+    put:
+      consumes:
+      - application/json
+      description: Mengubah role user
+      parameters:
+      - description: User UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Role payload
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user role
+      tags:
+      - User
 schemes:
 - http
 securityDefinitions:

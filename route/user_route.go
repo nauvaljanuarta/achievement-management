@@ -19,11 +19,9 @@ func setupUserRoutes(
 	protectedUserRoutes := userRoutes.Group("",middleware.RequireAuth(userRepo),middleware.AdminOnly(roleRepo),)
 	userRoutes.Get("/", userService.GetAll)
 	userRoutes.Get("/:id", userService.GetByID)
-	userRoutes.Get("/search", userService.SearchByName)
 	// admin
 	protectedUserRoutes.Post("/", userService.Create)
 	protectedUserRoutes.Put("/:id", userService.Update)
 	protectedUserRoutes.Delete("/:id", userService.Delete)
 	protectedUserRoutes.Put("/:id/role", userService.UpdateRole)
-	protectedUserRoutes.Get("/inactive", userService.GetInactiveUsers)
 }
