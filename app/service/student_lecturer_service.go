@@ -315,7 +315,7 @@ func (s *StudentLecturerService) GetStudentByID(c *fiber.Ctx) error {
 // @Summary Get student achievements
 // @Description
 // Mengambil daftar prestasi mahasiswa tertentu.
-// @Tags Student Achievement
+// @Tags Student
 // @Security BearerAuth
 // @Produce json
 //
@@ -600,32 +600,25 @@ func (s *StudentLecturerService) UpdateStudentAdvisor(c *fiber.Ctx) error {
 	})
 }
 
-// GetLecturerAdvisees godoc
-// @Summary Get lecturer advisees
+// GetAllLecturers godoc
+// @Summary Get all lecturers
 // @Description
-// Mengambil daftar mahasiswa bimbingan dosen.
-// Akses:
-// - Admin: semua dosen
-// - Dosen Wali: hanya data sendiri
-//
-// Menampilkan statistik prestasi mahasiswa.
-//
+// Mengambil daftar dosen dengan fitur:
+// - Pagination
+// - Search nama
+// - Filter department
+// - Menampilkan jumlah mahasiswa bimbingan
 // @Tags Lecturer
 // @Security BearerAuth
 // @Produce json
-//
-// @Param id path string true "Lecturer UUID"
 // @Param page query int false "Page number"
 // @Param limit query int false "Limit per page"
+// @Param search query string false "Search by lecturer name"
+// @Param department query string false "Filter by department"
 //
-// @Success 200 {object} map[string]interface{} "Lecturer advisees list"
-// @Failure 400 {object} map[string]string "Invalid lecturer ID"
-// @Failure 401 {object} map[string]string "Unauthorized"
-// @Failure 403 {object} map[string]string "Access denied"
-// @Failure 404 {object} map[string]string "Lecturer not found"
-// @Failure 500 {object} map[string]string "Failed to get advisees"
-//
-// @Router /lecturers/{id}/advisees [get]
+// @Success 200 {object} map[string]interface{} "List of lecturers"
+// @Failure 500 {object} map[string]string "Failed to get lecturers"
+// @Router /lecturers [get]
 func (s *StudentLecturerService) GetAllLecturers(c *fiber.Ctx) error {
 	// Get query parameters
 	page := c.QueryInt("page", 1)

@@ -748,6 +748,44 @@ paths:
       summary: Refresh Access Token
       tags:
       - Authentication
+  /lecturers:
+    get:
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Limit per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search by lecturer name
+        in: query
+        name: search
+        type: string
+      - description: Filter by department
+        in: query
+        name: department
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of lecturers
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get lecturers
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all lecturers
+      tags:
+      - Lecturer
   /lecturers/{id}/advisees:
     get:
       parameters:
@@ -1067,7 +1105,7 @@ paths:
       - BearerAuth: []
       summary: Get student achievements
       tags:
-      - Student Achievement
+      - Student
   /students/{id}/advisor:
     put:
       consumes:

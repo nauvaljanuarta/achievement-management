@@ -40,9 +40,9 @@ func setupAchievementRoutes(
 	protectedRoutes.Post("/", middleware.RequirePermission("achievement:create"), achievementService.CreateAchievement)
 	protectedRoutes.Put("/:id", middleware.RequirePermission("achievement:update"), achievementService.UpdateAchievement) 
 	protectedRoutes.Delete("/:id", middleware.RequirePermission("achievement:delete"), achievementService.DeleteAchievement) 
-	protectedRoutes.Post("/:id/submit", middleware.RequirePermission("achievement:update"), achievementService.SubmitAchievement) // Validasi status draft → submitted
+	protectedRoutes.Post("/:id/submit", middleware.RequirePermission("achievement:update"), achievementService.SubmitAchievement)
 	
-	protectedRoutes.Post("/:id/verify", middleware.RequirePermission("achievement:verify"), achievementService.VerifyAchievement) // Validasi dosen punya mahasiswa bimbingan
+	protectedRoutes.Post("/:id/verify", middleware.RequirePermission("achievement:verify"), achievementService.VerifyAchievement) 
 	protectedRoutes.Post("/:id/reject", middleware.RequirePermission("achievement:verify"), achievementService.RejectAchievement)
 
 	protectedRoutes.Post("/:id/attachments", middleware.RequirePermission("achievement:update"),achievementService.UploadAttachments)

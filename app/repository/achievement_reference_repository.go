@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"achievement-backend/app/models"
+
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type AchievementReferenceRepository interface {
@@ -314,6 +316,8 @@ func (r *achievementReferenceRepo) FindByAdvisorID(ctx context.Context, advisorI
 		return []*models.AchievementReference{}, 0, nil
 	}
 	
+	studentIDsArray := pq.Array(studentIDs)
+	
 	baseQuery := `
 		SELECT ar.id, ar.student_id, ar.mongo_achievement_id, ar.status, 
 		       ar.submitted_at, ar.verified_at, ar.verified_by, ar.rejection_note,
@@ -323,7 +327,7 @@ func (r *achievementReferenceRepo) FindByAdvisorID(ctx context.Context, advisorI
 	`
 	countQuery := `SELECT COUNT(*) FROM achievement_references WHERE student_id = ANY($1)`
 	
-	params := []interface{}{studentIDs}
+	params := []interface{}{studentIDsArray}
 	paramCount := 2
 	
 	if status == "deleted" {
@@ -349,7 +353,7 @@ func (r *achievementReferenceRepo) FindByAdvisorID(ctx context.Context, advisorI
 	
 	// Get total count
 	var total int
-	err = r.DB.QueryRowContext(ctx, countQuery, params[:paramCount-1]...).Scan(&total)
+	err = r.DB.QueryRowContext(ctx, countQuery, params[:len(params)-2]...).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
